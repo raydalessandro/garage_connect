@@ -38,14 +38,24 @@ function App() {
 
   const initApp = async () => {
     try {
+      console.log('🚀 Initializing app...')
+      console.log('📦 Supabase URL:', import.meta.env.VITE_SUPABASE_URL)
+      console.log('🔑 Supabase Key exists:', !!import.meta.env.VITE_SUPABASE_ANON_KEY)
+      
       // 1. Get workshop from subdomain
+      console.log('🔍 Fetching workshop...')
       const workshopData = await getWorkshop()
+      
+      console.log('📊 Workshop result:', workshopData)
+      
       if (!workshopData) {
-        setToast('Officina non trovata')
+        console.error('❌ Workshop not found')
+        setToast('Officina non trovata - Controlla console per dettagli')
         setLoading(false)
         return
       }
       
+      console.log('✅ Workshop loaded:', workshopData.name)
       setWorkshop(workshopData)
       
       // 2. Apply branding
@@ -61,8 +71,8 @@ function App() {
       
       setLoading(false)
     } catch (error) {
-      console.error('Init error:', error)
-      setToast('Errore di inizializzazione')
+      console.error('❌ Init error:', error)
+      setToast('Errore: ' + error.message)
       setLoading(false)
     }
   }
@@ -249,18 +259,43 @@ function LoginScreen({ workshop, onLogin, showToast }) {
     setLoading(true)
 
     try {
+      alert('🚀 Inizio ' + (isLogin ? 'login' : 'registrazione'))
+      
       if (isLogin) {
+        alert('📧 Login con: ' + email)
         const { error } = await signIn(email, password)
-        if (error) throw error
+        
+        if (error) {
+          alert('❌ Errore login: ' + error.message)
+          throw error
+        }
+        
+        alert('✅ Login OK! Carico profilo...')
         const customer = await getCurrentCustomer()
+        
+        if (!customer) {
+          alert('❌ Profilo non trovato')
+          throw new Error('Profilo cliente non trovato')
+        }
+        
+        alert('✅ Profilo caricato: ' + customer.name)
         onLogin(customer)
+        
       } else {
+        alert('📝 Registrazione: ' + email)
         const { error } = await signUp(email, password, { name, workshop_id: workshop.id })
-        if (error) throw error
+        
+        if (error) {
+          alert('❌ Errore registrazione: ' + error.message)
+          throw error
+        }
+        
+        alert('✅ Registrazione OK! Fai login ora.')
         showToast('Registrazione completata! Effettua il login.')
         setIsLogin(true)
       }
     } catch (error) {
+      alert('💥 Errore: ' + error.message)
       showToast(error.message)
     } finally {
       setLoading(false)
